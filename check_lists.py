@@ -19,6 +19,9 @@ class ChecklistApp:
 
         if not self.checklists:
             self.create_new_checklist("Liste 1")
+        else:
+            for list_name in self.checklists:
+                self.add_checklist_tab(list_name)
 
         self.create_widgets()
         self.populate_checklists()
@@ -54,7 +57,7 @@ class ChecklistApp:
         self.populate_checklist(list_name)
 
     def populate_checklist(self, list_name):
-        frame = self.notebook.nametowidget(self.notebook.select())
+        frame = self.get_current_frame(list_name)
         for widget in frame.winfo_children():
             widget.destroy()
 
@@ -94,6 +97,12 @@ class ChecklistApp:
 
         add_col_button = tk.Button(frame, text="+", bg="blue", fg="white", font=default_font, command=lambda: self.add_col(list_name))
         add_col_button.grid(row=0, column=len(checklist["col_names"])+3, sticky="n")
+
+    def get_current_frame(self, list_name):
+        for idx in range(self.notebook.index("end")):
+            if self.notebook.tab(idx, "text") == list_name:
+                return self.notebook.nametowidget(self.notebook.tabs()[idx])
+        return None
 
     def add_new_checklist(self):
         new_list_name = simpledialog.askstring("Nom de la nouvelle liste", "Entrez le nom de la nouvelle liste:", parent=self.root)
