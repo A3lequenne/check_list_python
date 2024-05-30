@@ -11,8 +11,17 @@ class ChecklistApp:
         self.root = root
         self.root.title("Checklist Application")
 
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(expand=1, fill="both")
+        self.main_frame = tk.Frame(self.root)
+        self.main_frame.pack(fill="both", expand=True)
+
+        self.notebook_frame = tk.Frame(self.main_frame)
+        self.notebook_frame.pack(side=tk.TOP, fill="x")
+
+        self.notebook = ttk.Notebook(self.notebook_frame)
+        self.notebook.pack(side=tk.LEFT, expand=1, fill="both")
+
+        self.add_list_button = tk.Button(self.notebook_frame, text="+", bg="blue", fg="white", command=self.add_new_checklist, width=2, height=1)
+        self.add_list_button.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.checklists = {}
         self.load_data()
@@ -37,14 +46,17 @@ class ChecklistApp:
     def create_widgets(self):
         default_font = ("Helvetica", 12)
 
-        self.reset_button = tk.Button(self.root, text="Reset", bg="#D9534F", fg="white", font=default_font, command=self.reset_checklist)
+        self.reset_button = tk.Button(self.main_frame, text="Reset", bg="#D9534F", fg="white", font=default_font, command=self.reset_checklist)
         self.reset_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.save_button = tk.Button(self.root, text="Sauvegarder", font=default_font, command=self.save_data)
-        self.save_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.modify_list_button = tk.Button(self.main_frame, text="Modifier liste", font=default_font, command=self.modify_list_name)
+        self.modify_list_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.add_list_button = tk.Button(self.root, text="+ Ajouter liste", font=default_font, command=self.add_new_checklist)
-        self.add_list_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.delete_list_button = tk.Button(self.main_frame, text="Supprimer liste", bg="#D9534F", fg="white", font=default_font, command=self.delete_current_checklist)
+        self.delete_list_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.save_button = tk.Button(self.main_frame, text="Sauvegarder", font=default_font, command=self.save_data)
+        self.save_button.pack(side=tk.LEFT, padx=5, pady=5)
 
     def populate_checklists(self):
         for list_name in self.checklists:
@@ -64,16 +76,16 @@ class ChecklistApp:
         checklist = self.checklists[list_name]
         default_font = ("Helvetica", 12)
 
-        tk.Label(frame, text="", font=default_font).grid(row=0, column=0)
+        tk.Label(frame, text="", font=default_font).grid(row=0, column=1)
         for j, col_name in enumerate(checklist["col_names"]):
             edit_col_button = tk.Button(frame, text="✎", font=default_font, command=lambda c=j: self.edit_col_name(list_name, c))
-            edit_col_button.grid(row=0, column=j+2, sticky="s")
-            tk.Label(frame, text=col_name, font=default_font).grid(row=1, column=j+2)
+            edit_col_button.grid(row=1, column=j+2, sticky="s")
+            tk.Label(frame, text=col_name, font=default_font).grid(row=2, column=j+2)
 
         for i, row_name in enumerate(checklist["row_names"]):
-            tk.Label(frame, text=row_name, font=default_font).grid(row=i+2, column=0, padx=(0, 10))
+            tk.Label(frame, text=row_name, font=default_font).grid(row=i+3, column=0, padx=(0, 10))
             edit_row_button = tk.Button(frame, text="✎", font=default_font, command=lambda r=i: self.edit_row_name(list_name, r))
-            edit_row_button.grid(row=i+2, column=1, sticky="w")
+            edit_row_button.grid(row=i+3, column=1, sticky="w")
 
         for i, row in enumerate(checklist["data"]):
             for j, value in enumerate(row):
@@ -81,22 +93,22 @@ class ChecklistApp:
                     value = value.get()
                 var = tk.BooleanVar(value=value)
                 cb = tk.Checkbutton(frame, variable=var, font=default_font)
-                cb.grid(row=i+2, column=j+2)
+                cb.grid(row=i+3, column=j+2)
                 checklist["data"][i][j] = var
 
         for i in range(len(checklist["row_names"])):
             del_row_button = tk.Button(frame, text="X", bg="#D9534F", fg="white", font=default_font, command=lambda r=i: self.del_row(list_name, r))
-            del_row_button.grid(row=i+2, column=len(checklist["col_names"])+3, sticky="w")
+            del_row_button.grid(row=i+3, column=len(checklist["col_names"])+3, sticky="w")
 
         for j in range(len(checklist["col_names"])):
             del_col_button = tk.Button(frame, text="X", bg="#D9534F", fg="white", font=default_font, command=lambda c=j: self.del_col(list_name, c))
-            del_col_button.grid(row=len(checklist["row_names"])+2, column=j+2, sticky="n")
+            del_col_button.grid(row=len(checklist["row_names"])+3, column=j+2, sticky="n")
 
         add_row_button = tk.Button(frame, text="+", bg="blue", fg="white", font=default_font, command=lambda: self.add_row(list_name))
-        add_row_button.grid(row=len(checklist["row_names"])+2, column=0, pady=10)
+        add_row_button.grid(row=len(checklist["row_names"])+3, column=0, pady=10)
 
         add_col_button = tk.Button(frame, text="+", bg="blue", fg="white", font=default_font, command=lambda: self.add_col(list_name))
-        add_col_button.grid(row=0, column=len(checklist["col_names"])+3, sticky="n")
+        add_col_button.grid(row=1, column=len(checklist["col_names"])+3, sticky="n")
 
     def get_current_frame(self, list_name):
         for idx in range(self.notebook.index("end")):
@@ -112,6 +124,17 @@ class ChecklistApp:
             else:
                 messagebox.showerror("Erreur", "Une liste avec ce nom existe déjà.")
         self.populate_checklists()
+
+    def modify_list_name(self):
+        current_tab = self.notebook.select()
+        list_name = self.notebook.tab(current_tab, "text")
+        new_list_name = simpledialog.askstring("Modifier le nom de la liste", "Entrez le nouveau nom de la liste:", initialvalue=list_name, parent=self.root)
+        if new_list_name:
+            if new_list_name not in self.checklists:
+                self.checklists[new_list_name] = self.checklists.pop(list_name)
+                self.notebook.tab(current_tab, text=new_list_name)
+            else:
+                messagebox.showerror("Erreur", "Une liste avec ce nom existe déjà.")
 
     def add_row(self, list_name):
         checklist = self.checklists[list_name]
@@ -169,6 +192,17 @@ class ChecklistApp:
             "data": [[False]]
         }
         self.populate_checklist(list_name)
+
+    def delete_current_checklist(self):
+        current_tab = self.notebook.select()
+        list_name = self.notebook.tab(current_tab, "text")
+        self.delete_checklist(list_name, self.get_current_frame(list_name))
+
+    def delete_checklist(self, list_name, frame):
+        del self.checklists[list_name]
+        self.notebook.forget(frame)
+        if not self.checklists:
+            self.create_new_checklist("Liste 1")
 
     def save_data(self):
         state = {
